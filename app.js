@@ -3,13 +3,20 @@ const fs = require('node:fs');
 const net = require('node:net');
 const { clearTimeout } = require('node:timers');
 const dns = require('node:dns');
+let remoteIp;
 
 
   /**get Certificate somewhere */
 let secureOpts = {
-        key: fs.readFileSync('server-key.key'),
-        cert: fs.readFileSync('server-key.cert'),
+        key: fs.readFileSync('privkey.pem'),
+        cert: fs.readFileSync('fullchain.pem'),
     }
+    /**get remote IP */
+dns.resolve4( 'itsapr.com', (err, addresses) => {
+                                    if (err) throw err;
+                                
+                                    remoteIp = addresses[0];
+})
 
     /***********creating a TLS server************ */
 const server = tls.createServer(secureOpts, async(incomeS) => {
@@ -18,13 +25,7 @@ const server = tls.createServer(secureOpts, async(incomeS) => {
 
         
         /**********get a remody IPv4 by a domain name  (optional)  */
-        let ipAddress =    await new Promise((resolve, reject) => {
-                                dns.resolve4( 'itsapr.com', (err, addresses) => {
-                                    if (err) throw err;
-                                
-                                    resolve(addresses[0])
-                                })
-                            }); 
+        let ipAddress =  remoteIp;
 
          /********create a new socket*********** */
         let remoteConnection = new net.Socket();
